@@ -2,18 +2,56 @@
 require_once __DIR__ . '/../config/init.php';
 require_once __DIR__ . '/../templates/header.php';
 
-// Ambil semua data logbook dari database
-$stmt = $pdo->query("
-    SELECT 
-        le.*, 
-        u.name as user_name, 
-        i.name as instrument_name,
-        i.code as instrument_code
-    FROM logbook_entries le
-    JOIN users u ON le.user_id = u.id
-    JOIN instruments i ON le.instrument_id = i.id
-    ORDER BY le.start_date DESC, le.start_time DESC
-");
+// Check if user has permission to view logbook
+if (function_exists('hasPermission')) {
+    if (!hasPermission('logbook_view')) {
+        echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <strong>Access Denied:</strong> You do not have permission to view the logbook.
+              </div>';
+        echo '<script>setTimeout(() => { window.location.href = "index.php"; }, 3000);</script>';
+        require_once __DIR__ . '/../templates/footer.php';
+        exit();
+    }
+}
+
+// Get user role for permission checks
+$userRole = $_SESSION['user_role'] ?? 'viewer';
+$userId = $_SESSION['user_id'] ?? 0;
+
+// Determine what entries user can see
+$canViewAll = function_exists('hasPermission') ? hasPermission('entry_edit_all') : ($userRole === 'administrator');
+$canExport = function_exists('hasPermission') ? hasPermission('logbook_export') : ($userRole !== 'viewer');
+$canCreate = function_exists('hasPermission') ? hasPermission('entry_create') : ($userRole !== 'viewer');
+
+// Build query based on permissions
+if ($canViewAll) {
+    // Administrators can see all entries
+    $stmt = $pdo->query("
+        SELECT 
+            le.*, 
+            u.name as user_name, 
+            i.name as instrument_name,
+            i.code as instrument_code
+        FROM logbook_entries le
+        JOIN users u ON le.user_id = u.id
+        JOIN instruments i ON le.instrument_id = i.id
+        ORDER BY le.start_date DESC, le.start_time DESC
+    ");
+} else {
+    // Contributors and Viewers see all entries but with limited actions
+    $stmt = $pdo->query("
+        SELECT 
+            le.*, 
+            u.name as user_name, 
+            i.name as instrument_name,
+            i.code as instrument_code
+        FROM logbook_entries le
+        JOIN users u ON le.user_id = u.id
+        JOIN instruments i ON le.instrument_id = i.id
+        ORDER BY le.start_date DESC, le.start_time DESC
+    ");
+}
+
 $logs = $stmt->fetchAll();
 
 // Ambil daftar instrumen unik untuk filter
@@ -26,6 +64,23 @@ $parameter_columns = [
     'Lamp' => 'lamp_val', 'Column' => 'column_val', 'Apparatus' => 'apparatus_val', 
     'Medium' => 'medium_val', 'TotalVolume' => 'total_volume_val', 'VesselQuantity' => 'vessel_quantity_val'
 ];
+
+// Helper functions for permission checks
+function userCanEdit($entry, $userId, $userRole) {
+    if (function_exists('canEditEntry')) {
+        return canEditEntry($entry);
+    }
+    // Fallback logic
+    return ($userRole === 'administrator') || ($entry['user_id'] == $userId && $userRole === 'contributor');
+}
+
+function userCanDelete($entry, $userId, $userRole) {
+    if (function_exists('canDeleteEntry')) {
+        return canDeleteEntry($entry);
+    }
+    // Fallback logic
+    return ($userRole === 'administrator') || ($entry['user_id'] == $userId && $userRole === 'contributor');
+}
 ?>
 
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.tailwindcss.min.css">
@@ -259,10 +314,21 @@ $parameter_columns = [
 
 <div class="card">
     <div class="card-header text-base flex justify-between items-center">
-        <span>Logbook List</span>
-        <a href="entry.php" class="btn btn-primary text-xs !py-1 !px-2">
-            <i class="fas fa-plus mr-1"></i>Add New Entry
-        </a>
+        <div class="flex items-center gap-4">
+            <span>Logbook List</span>
+            <?php if ($userRole === 'viewer'): ?>
+                <span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                    <i class="fas fa-eye mr-1"></i>View Only Mode
+                </span>
+            <?php endif; ?>
+        </div>
+        <div class="flex gap-2">
+            <?php if ($canCreate): ?>
+            <a href="entry.php" class="btn btn-primary text-xs !py-1 !px-2">
+                <i class="fas fa-plus mr-1"></i>Add New Entry
+            </a>
+            <?php endif; ?>
+        </div>
     </div>
     
     <div class="p-6 space-y-6">
@@ -294,25 +360,49 @@ $parameter_columns = [
         <!-- Table Section -->
         <div>
             <div class="flex justify-between items-center mb-4">
-                <div class="text-xs text-muted-foreground"><span id="table-info">Loading entries...</span></div>
+                <div class="text-xs text-muted-foreground">
+                    <span id="table-info">Loading entries...</span>
+                    <?php if (!$canViewAll): ?>
+                        <span class="ml-2 text-yellow-600">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            You can only edit/delete your own entries
+                        </span>
+                    <?php endif; ?>
+                </div>
+                <?php if ($canExport): ?>
                 <div class="relative">
                     <button id="exportDropdownBtn" class="btn btn-success text-xs">
                         <i class="fas fa-download mr-1"></i>Export<i class="fas fa-chevron-down ml-1"></i>
                     </button>
                     <div id="exportDropdown" class="absolute right-0 top-full mt-2 w-48 bg-card rounded-lg shadow-lg border border-border py-1.5 hidden z-50">
-                        <button id="copyBtn" class="w-full text-left flex items-center px-3 py-1.5 text-xs text-foreground hover:bg-accent transition-colors"><i class="fas fa-copy w-3 h-3 mr-2 text-blue-500"></i>Copy to Clipboard</button>
-                        <button id="csvBtn" class="w-full text-left flex items-center px-3 py-1.5 text-xs text-foreground hover:bg-accent transition-colors"><i class="fas fa-file-csv w-3 h-3 mr-2 text-green-500"></i>Export as CSV</button>
-                        <button id="excelBtn" class="w-full text-left flex items-center px-3 py-1.5 text-xs text-foreground hover:bg-accent transition-colors"><i class="fas fa-file-excel w-3 h-3 mr-2 text-green-600"></i>Export as Excel</button>
+                        <button id="copyBtn" class="w-full text-left flex items-center px-3 py-1.5 text-xs text-foreground hover:bg-accent transition-colors">
+                            <i class="fas fa-copy w-3 h-3 mr-2 text-blue-500"></i>Copy to Clipboard
+                        </button>
+                        <button id="csvBtn" class="w-full text-left flex items-center px-3 py-1.5 text-xs text-foreground hover:bg-accent transition-colors">
+                            <i class="fas fa-file-csv w-3 h-3 mr-2 text-green-500"></i>Export as CSV
+                        </button>
+                        <button id="excelBtn" class="w-full text-left flex items-center px-3 py-1.5 text-xs text-foreground hover:bg-accent transition-colors">
+                            <i class="fas fa-file-excel w-3 h-3 mr-2 text-green-600"></i>Export as Excel
+                        </button>
                         <hr class="my-1 border-border">
-                        <button id="printBtn" class="w-full text-left flex items-center px-3 py-1.5 text-xs text-foreground hover:bg-accent transition-colors"><i class="fas fa-print w-3 h-3 mr-2 text-gray-500"></i>Print Table</button>
+                        <button id="printBtn" class="w-full text-left flex items-center px-3 py-1.5 text-xs text-foreground hover:bg-accent transition-colors">
+                            <i class="fas fa-print w-3 h-3 mr-2 text-gray-500"></i>Print Table
+                        </button>
                     </div>
                 </div>
+                <?php elseif ($userRole === 'viewer'): ?>
+                <div class="text-xs text-muted-foreground bg-yellow-50 px-3 py-2 rounded border border-yellow-200">
+                    <i class="fas fa-info-circle mr-1 text-yellow-600"></i>
+                    <span class="text-yellow-800">Export features not available in view-only mode</span>
+                </div>
+                <?php endif; ?>
             </div>
 
             <div class="overflow-x-auto">
                 <table id="logbookTable" class="display table-auto w-full text-xs" style="width:100%">
                     <thead>
                         <tr>
+                            <th class="p-2 text-left">Actions</th>
                             <th class="p-2 text-left">Log Code</th>
                             <th class="p-2 text-left">Instrument</th>
                             <th class="p-2 text-left">User</th>
@@ -331,34 +421,115 @@ $parameter_columns = [
                     <tbody>
                         <?php if (empty($logs)): ?>
                             <tr>
-                                <td colspan="<?php echo count($parameter_columns) + 10; ?>" class="p-8 text-center text-muted-foreground">
-                                    <div class="flex flex-col items-center gap-2"><i class="fas fa-inbox text-2xl opacity-50"></i><p>No logbook entries found.</p><a href="entry.php" class="text-primary hover:underline text-sm">Create your first entry</a></div>
+                                <td colspan="<?php echo count($parameter_columns) + 11; ?>" class="p-8 text-center text-muted-foreground">
+                                    <div class="flex flex-col items-center gap-2">
+                                        <i class="fas fa-inbox text-2xl opacity-50"></i>
+                                        <p>No logbook entries found.</p>
+                                        <?php if ($canCreate): ?>
+                                            <a href="entry.php" class="text-primary hover:underline text-sm">Create your first entry</a>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                         <?php else: ?>
                             <?php foreach ($logs as $log): ?>
                             <tr class="hover:bg-accent/50">
+                                <td class="p-2 text-center whitespace-nowrap">
+                                    <div class="flex justify-center gap-1">
+                                        <!-- View Button -->
+                                        <button onclick="viewEntry(<?php echo $log['id']; ?>)" 
+                                                class="action-btn action-btn-view" 
+                                                title="View Details"
+                                                data-id="<?php echo $log['id']; ?>"
+                                                data-code="<?php echo esc_html($log['log_book_code']); ?>"
+                                                data-instrument="<?php echo esc_html($log['instrument_name']); ?>"
+                                                data-user="<?php echo esc_html($log['user_name']); ?>"
+                                                data-sample="<?php echo esc_html($log['sample_name']); ?>"
+                                                data-trial="<?php echo esc_html($log['trial_code']); ?>"
+                                                data-start="<?php echo esc_html(date('Y-m-d H:i', strtotime($log['start_date'] . ' ' . $log['start_time']))); ?>"
+                                                data-finish="<?php echo $log['finish_date'] ? esc_html(date('Y-m-d H:i', strtotime($log['finish_date'] . ' ' . $log['finish_time']))) : 'In Progress'; ?>"
+                                                data-condition="<?php echo esc_html($log['condition_after']); ?>"
+                                                data-status="<?php echo esc_html($log['status']); ?>"
+                                                data-remark="<?php echo esc_html($log['remark']); ?>">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        
+                                        <!-- Edit Button -->
+                                        <?php if (userCanEdit($log, $userId, $userRole)): ?>
+                                            <a href="edit_entry.php?id=<?php echo (int)$log['id']; ?>" 
+                                               class="action-btn action-btn-edit" 
+                                               title="Edit Entry">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        <?php else: ?>
+                                            <button class="action-btn action-btn-disabled" 
+                                                    title="<?php echo ($userRole === 'viewer') ? 'View-only mode' : 'Can only edit own entries'; ?>" 
+                                                    disabled>
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        <?php endif; ?>
+                                        
+                                        <!-- Delete Button -->
+                                        <?php if (userCanDelete($log, $userId, $userRole)): ?>
+                                            <button onclick="confirmDelete(<?php echo $log['id']; ?>, '<?php echo esc_html($log['log_book_code']); ?>')" 
+                                                    class="action-btn action-btn-delete" 
+                                                    title="Delete Entry">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        <?php else: ?>
+                                            <button class="action-btn action-btn-disabled" 
+                                                    title="<?php echo ($userRole === 'viewer') ? 'View-only mode' : 'Can only delete own entries'; ?>" 
+                                                    disabled>
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
                                 <td class="p-2 whitespace-nowrap font-medium">
                                     <a href="edit_entry.php?id=<?php echo (int)$log['id']; ?>" class="text-blue-600 hover:underline hover:text-blue-800">
                                         <?php echo esc_html($log['log_book_code']); ?>
                                     </a>
                                 </td>
                                 <td class="p-2 whitespace-nowrap"><?php echo esc_html($log['instrument_name']); ?></td>
-                                <td class="p-2 whitespace-nowrap"><?php echo esc_html($log['user_name']); ?></td>
+                                <td class="p-2 whitespace-nowrap">
+                                    <?php echo esc_html($log['user_name']); ?>
+                                    <?php if ($log['user_id'] == $userId): ?>
+                                        <span class="text-xs text-blue-600">(You)</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="p-2 whitespace-nowrap"><?php echo esc_html($log['sample_name']); ?></td>
                                 <td class="p-2 whitespace-nowrap"><?php echo esc_html($log['trial_code']); ?></td>
                                 <td class="p-2 whitespace-nowrap"><?php echo esc_html(date('Y-m-d H:i', strtotime($log['start_date'] . ' ' . $log['start_time']))); ?></td>
-                                <td class="p-2 whitespace-nowrap"><?php if ($log['finish_date']): ?><?php echo esc_html(date('Y-m-d H:i', strtotime($log['finish_date'] . ' ' . $log['finish_time']))); ?><?php else: ?><span class="text-muted-foreground italic">In Progress</span><?php endif; ?></td>
+                                <td class="p-2 whitespace-nowrap">
+                                    <?php if ($log['finish_date']): ?>
+                                        <?php echo esc_html(date('Y-m-d H:i', strtotime($log['finish_date'] . ' ' . $log['finish_time']))); ?>
+                                    <?php else: ?>
+                                        <span class="text-muted-foreground italic">In Progress</span>
+                                    <?php endif; ?>
+                                </td>
                                 
                                 <?php foreach ($parameter_columns as $db_col): ?>
                                     <td class="p-2 whitespace-nowrap"><?php echo esc_html($log[$db_col]); ?></td>
                                 <?php endforeach; ?>
                                 
                                 <td class="p-2 whitespace-nowrap">
-                                    <?php if ($log['condition_after']): ?><span class="px-2 py-0.5 text-[10px] rounded-full <?php echo $log['condition_after'] === 'Good' ? 'bg-green-100 text-green-800' : ($log['condition_after'] === 'Need Maintenance' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'); ?>"><?php echo esc_html($log['condition_after']); ?></span><?php else: ?><span class="text-muted-foreground">-</span><?php endif; ?>
+                                    <?php if ($log['condition_after']): ?>
+                                        <span class="px-2 py-0.5 text-[10px] rounded-full <?php 
+                                            echo $log['condition_after'] === 'Good' ? 'bg-green-100 text-green-800' : 
+                                                ($log['condition_after'] === 'Need Maintenance' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'); 
+                                        ?>">
+                                            <?php echo esc_html($log['condition_after']); ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="text-muted-foreground">-</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="p-2 whitespace-nowrap">
-                                    <span class="px-2 py-0.5 text-[10px] rounded-full <?php echo $log['status'] === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'; ?>"><?php echo esc_html($log['status']); ?></span>
+                                    <span class="px-2 py-0.5 text-[10px] rounded-full <?php 
+                                        echo $log['status'] === 'Completed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'; 
+                                    ?>">
+                                        <?php echo esc_html($log['status']); ?>
+                                    </span>
                                 </td>
                                 <td class="p-2 max-w-xs"><?php echo esc_html($log['remark']); ?></td>
                             </tr>
@@ -517,7 +688,8 @@ $(document).ready(function() {
         }
     });
 
-    // Export dropdown functionality
+    // Export dropdown functionality (only if user can export)
+    <?php if ($canExport): ?>
     const exportDropdownBtn = $('#exportDropdownBtn');
     const exportDropdown = $('#exportDropdown');
     
@@ -555,6 +727,7 @@ $(document).ready(function() {
         table.button(3).trigger(); 
         exportDropdown.addClass('hidden'); 
     });
+    <?php endif; ?>
     
     // Enhanced toast notification
     function showToast(message, type = 'success') {

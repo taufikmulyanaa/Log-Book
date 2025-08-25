@@ -3,10 +3,23 @@
 require_once __DIR__ . '/../config/init.php';
 require_once __DIR__ . '/../templates/header.php';
 
-// Check if user has admin privileges
-if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
-    http_response_code(403);
-    die('Access denied. Administrator privileges required.');
+// Check if user has permission to access user management
+if (function_exists('hasPermission')) {
+    if (!hasPermission('user_management')) {
+        http_response_code(403);
+        echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                <strong>Access Denied:</strong> Administrator privileges required to access this page.
+              </div>';
+        echo '<script>setTimeout(() => { window.location.href = "index.php"; }, 3000);</script>';
+        require_once __DIR__ . '/../templates/footer.php';
+        exit();
+    }
+} else {
+    // Fallback check if permissions not loaded
+    if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'administrator') {
+        http_response_code(403);
+        die('Access denied. Administrator privileges required.');
+    }
 }
 
 // Fetch all users with statistics
@@ -205,7 +218,7 @@ $users = $stmt->fetchAll();
                 <div class="text-xs text-green-600">Active Users</div>
             </div>
             <div class="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-4 text-center">
-                <div class="text-lg font-bold text-purple-800"><?php echo count(array_filter($users, fn($u) => $u['role'] === 'admin')); ?></div>
+                <div class="text-lg font-bold text-purple-800"><?php echo count(array_filter($users, fn($u) => $u['role'] === 'administrator')); ?></div>
                 <div class="text-xs text-purple-600">Administrators</div>
             </div>
             <div class="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4 text-center">
@@ -224,8 +237,8 @@ $users = $stmt->fetchAll();
                 <label for="roleFilter" class="form-label text-xs">Filter by Role</label>
                 <select id="roleFilter" class="form-select text-xs">
                     <option value="">All Roles</option>
-                    <option value="admin">Administrator</option>
-                    <option value="user">User</option>
+                    <option value="administrator">Administrator</option>
+                    <option value="contributor">Contributor</option>
                     <option value="viewer">Viewer</option>
                 </select>
             </div>
@@ -288,12 +301,16 @@ $users = $stmt->fetchAll();
                                 </div>
                             </td>
                             <td class="p-2 whitespace-nowrap">
-                                <span class="px-2 py-0.5 text-[10px] rounded-full font-medium <?php 
-                                    echo $user['role'] === 'admin' ? 'bg-red-100 text-red-800' : 
-                                        ($user['role'] === 'user' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'); 
-                                ?>">
-                                    <?php echo ucfirst(esc_html($user['role'])); ?>
-                                </span>
+                                <?php if (function_exists('getRoleBadge')): ?>
+                                    <?php echo getRoleBadge($user['role']); ?>
+                                <?php else: ?>
+                                    <span class="px-2 py-0.5 text-[10px] rounded-full font-medium <?php 
+                                        echo $user['role'] === 'administrator' ? 'bg-red-100 text-red-800' : 
+                                            ($user['role'] === 'contributor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'); 
+                                    ?>">
+                                        <?php echo ucfirst(esc_html($user['role'])); ?>
+                                    </span>
+                                <?php endif; ?>
                             </td>
                             <td class="p-2 whitespace-nowrap">
                                 <span class="px-2 py-0.5 text-[10px] rounded-full font-medium <?php 
@@ -390,10 +407,29 @@ $users = $stmt->fetchAll();
                     <div>
                         <label for="user_role" class="form-label text-xs">Role *</label>
                         <select id="user_role" name="role" required class="form-select text-xs">
-                            <option value="user">User</option>
-                            <option value="admin">Administrator</option>
-                            <option value="viewer">Viewer</option>
+                            <?php 
+                            if (function_exists('getAvailableRoles')) {
+                                $availableRoles = getAvailableRoles();
+                            } else {
+                                // Fallback roles
+                                $availableRoles = [
+                                    'administrator' => 'Administrator',
+                                    'contributor' => 'Contributor',
+                                    'viewer' => 'Viewer'
+                                ];
+                                // Remove admin option if not admin
+                                if ($_SESSION['user_role'] !== 'administrator') {
+                                    unset($availableRoles['administrator']);
+                                }
+                            }
+                            ?>
+                            <?php foreach ($availableRoles as $roleKey => $roleName): ?>
+                                <option value="<?php echo $roleKey; ?>"><?php echo $roleName; ?></option>
+                            <?php endforeach; ?>
                         </select>
+                        <p class="text-[10px] text-muted-foreground mt-1">
+                            Only administrators can create other administrators
+                        </p>
                     </div>
                     <div class="flex items-end">
                         <label class="flex items-center">

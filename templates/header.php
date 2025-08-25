@@ -6,7 +6,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $userName = $_SESSION['user_name'] ?? 'User';
-$userRole = $_SESSION['user_role'] ?? 'user'; // Get user role
+$userRole = $_SESSION['user_role'] ?? 'viewer';
 $current_page = basename($_SERVER['PHP_SELF']);
 
 function getPageTitle($page) {
@@ -23,16 +23,72 @@ function getPageTitle($page) {
     }
 }
 
-// Helper function to check if user has permission for a page
-function hasPermission($page, $userRole) {
-    $adminOnlyPages = ['user_management.php'];
-    
-    if (in_array($page, $adminOnlyPages)) {
-        return $userRole === 'admin';
+// Check if permissions are loaded
+if (!function_exists('hasPermission')) {
+    // Fallback if permissions not loaded
+    function hasPermission($permission) {
+        return true;
     }
-    
-    return true; // All other pages accessible to all logged-in users
+    function getRoleDisplayName($role) {
+        return ucfirst($role);
+    }
+    function canAccessPage($page) {
+        return true;
+    }
+    function getRoleBadge($role) {
+        return '<span class="px-2 py-0.5 text-[10px] rounded-full font-medium bg-gray-100 text-gray-800">' . ucfirst($role) . '</span>';
+    }
 }
+
+// Navigation items with their required permissions
+$navigationItems = [
+    [
+        'url' => 'index.php',
+        'icon' => 'fas fa-tachometer-alt',
+        'label' => 'Dashboard',
+        'permission' => 'dashboard'
+    ],
+    [
+        'url' => 'entry.php', 
+        'icon' => 'fas fa-plus-circle',
+        'label' => 'Entry',
+        'permission' => 'entry_create'
+    ],
+    [
+        'url' => 'logbook_list.php',
+        'icon' => 'fas fa-table', 
+        'label' => 'Logbook List',
+        'permission' => 'logbook_view'
+    ],
+    [
+        'url' => 'reporting.php',
+        'icon' => 'fas fa-chart-bar',
+        'label' => 'Reporting', 
+        'permission' => 'reporting_view'
+    ],
+    [
+        'url' => 'import.php',
+        'icon' => 'fas fa-file-import',
+        'label' => 'Import Data',
+        'permission' => 'import_data'
+    ],
+    [
+        'url' => 'settings.php',
+        'icon' => 'fas fa-cog',
+        'label' => 'Settings',
+        'permission' => 'settings_view'
+    ]
+];
+
+$adminItems = [
+    [
+        'url' => 'user_management.php',
+        'icon' => 'fas fa-users-cog',
+        'label' => 'User Management',
+        'permission' => 'user_management',
+        'badge' => 'Admin'
+    ]
+];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -54,21 +110,50 @@ function hasPermission($page, $userRole) {
         </div>
         <nav class="flex-1 p-3">
             <ul class="space-y-1">
-                <li><a href="index.php" class="w-full text-left px-3 py-2 text-white text-sm rounded-lg transition duration-200 flex items-center gap-2 <?php echo ($current_page == 'index.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>"><i class="fas fa-tachometer-alt fa-fw"></i><span>Dashboard</span></a></li>
-                <li><a href="entry.php" class="w-full text-left px-3 py-2 text-white text-sm rounded-lg transition duration-200 flex items-center gap-2 <?php echo ($current_page == 'entry.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>"><i class="fas fa-plus-circle fa-fw"></i><span>Entry</span></a></li>
-                <li><a href="logbook_list.php" class="w-full text-left px-3 py-2 text-white text-sm rounded-lg transition duration-200 flex items-center gap-2 <?php echo ($current_page == 'logbook_list.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>"><i class="fas fa-table fa-fw"></i><span>Logbook List</span></a></li>
-                <li><a href="reporting.php" class="w-full text-left px-3 py-2 text-white text-sm rounded-lg transition duration-200 flex items-center gap-2 <?php echo ($current_page == 'reporting.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>"><i class="fas fa-chart-bar fa-fw"></i><span>Reporting</span></a></li>
-                <li><a href="import.php" class="w-full text-left px-3 py-2 text-white text-sm rounded-lg transition duration-200 flex items-center gap-2 <?php echo ($current_page == 'import.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>"><i class="fas fa-file-import fa-fw"></i><span>Import Data</span></a></li>
-                <li><a href="settings.php" class="w-full text-left px-3 py-2 text-white text-sm rounded-lg transition duration-200 flex items-center gap-2 <?php echo ($current_page == 'settings.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>"><i class="fas fa-cog fa-fw"></i><span>Settings</span></a></li>
+                <?php foreach ($navigationItems as $item): ?>
+                    <?php if (hasPermission($item['permission'])): ?>
+                    <li>
+                        <a href="<?php echo $item['url']; ?>" 
+                           class="w-full text-left px-3 py-2 text-white text-sm rounded-lg transition duration-200 flex items-center gap-2 <?php echo ($current_page == $item['url']) ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
+                            <i class="<?php echo $item['icon']; ?> fa-fw"></i>
+                            <span><?php echo $item['label']; ?></span>
+                            <?php if ($userRole === 'viewer' && in_array($item['url'], ['logbook_list.php', 'reporting.php'])): ?>
+                                <span class="text-xs bg-gray-500 px-1 rounded ml-auto">View Only</span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                    <?php endif; ?>
+                <?php endforeach; ?>
                 
-                <?php if ($userRole === 'admin'): ?>
+                <!-- Admin Section -->
+                <?php 
+                $hasAdminItems = false;
+                foreach ($adminItems as $item) {
+                    if (hasPermission($item['permission'])) {
+                        $hasAdminItems = true;
+                        break;
+                    }
+                }
+                ?>
+                
+                <?php if ($hasAdminItems): ?>
                 <li class="border-t border-blue-400 pt-2 mt-2">
-                    <a href="user_management.php" class="w-full text-left px-3 py-2 text-white text-sm rounded-lg transition duration-200 flex items-center gap-2 <?php echo ($current_page == 'user_management.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
-                        <i class="fas fa-users-cog fa-fw"></i>
-                        <span>User Management</span>
-                        <span class="text-xs bg-red-500 px-1 rounded">Admin</span>
-                    </a>
+                    <div class="text-xs text-blue-200 px-3 py-1 uppercase tracking-wider">Administration</div>
                 </li>
+                <?php foreach ($adminItems as $item): ?>
+                    <?php if (hasPermission($item['permission'])): ?>
+                    <li>
+                        <a href="<?php echo $item['url']; ?>" 
+                           class="w-full text-left px-3 py-2 text-white text-sm rounded-lg transition duration-200 flex items-center gap-2 <?php echo ($current_page == $item['url']) ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
+                            <i class="<?php echo $item['icon']; ?> fa-fw"></i>
+                            <span><?php echo $item['label']; ?></span>
+                            <?php if (isset($item['badge'])): ?>
+                                <span class="text-xs bg-red-500 px-1 rounded ml-auto"><?php echo $item['badge']; ?></span>
+                            <?php endif; ?>
+                        </a>
+                    </li>
+                    <?php endif; ?>
+                <?php endforeach; ?>
                 <?php endif; ?>
             </ul>
         </nav>
@@ -91,25 +176,38 @@ function hasPermission($page, $userRole) {
                 
                 <div class="relative">
                     <button id="profile-menu-button" class="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 rounded-lg px-4 py-2 transition-colors">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center"><span class="text-white text-sm font-semibold"><?php echo strtoupper(substr($userName, 0, 1)); ?></span></div>
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                            <span class="text-white text-sm font-semibold"><?php echo strtoupper(substr($userName, 0, 1)); ?></span>
+                        </div>
                         <div class="text-sm text-left hidden sm:block">
                             <p class="font-medium text-gray-800"><?php echo esc_html($userName); ?></p>
-                            <p class="text-gray-500 text-xs capitalize"><?php echo esc_html($userRole); ?></p>
+                            <p class="text-gray-500 text-xs"><?php echo getRoleDisplayName($userRole); ?></p>
                         </div>
                         <i class="fas fa-chevron-down text-gray-400 text-xs hidden sm:block"></i>
                     </button>
                     <div id="profileMenu" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 hidden z-50">
                         <div class="px-4 py-2 border-b text-xs text-gray-500">
-                            Logged in as: <strong><?php echo esc_html($userRole); ?></strong>
+                            Logged in as: <strong><?php echo getRoleDisplayName($userRole); ?></strong>
                         </div>
-                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fas fa-user mr-3 text-gray-400"></i> My Profile</a>
-                        <?php if ($userRole === 'admin'): ?>
-                        <a href="user_management.php" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fas fa-users-cog mr-3 text-gray-400"></i> User Management</a>
+                        <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-user mr-3 text-gray-400"></i> My Profile
+                        </a>
+                        <?php if (hasPermission('user_management')): ?>
+                        <a href="user_management.php" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-users-cog mr-3 text-gray-400"></i> User Management
+                        </a>
+                        <?php endif; ?>
+                        <?php if (hasPermission('settings_view')): ?>
+                        <a href="settings.php" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-cog mr-3 text-gray-400"></i> Settings
+                        </a>
                         <?php endif; ?>
                         <hr class="my-1 border-gray-200">
                         <form action="logout.php" method="post" class="w-full">
                             <input type="hidden" name="csrf_token" value="<?php echo esc_html($_SESSION['csrf_token']); ?>">
-                            <button type="submit" class="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"><i class="fas fa-sign-out-alt mr-3 text-red-400"></i> Sign Out</button>
+                            <button type="submit" class="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                <i class="fas fa-sign-out-alt mr-3 text-red-400"></i> Sign Out
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -118,18 +216,31 @@ function hasPermission($page, $userRole) {
         <main class="flex-1 overflow-auto p-6">
             <div class="max-w-7xl mx-auto space-y-6">
             
-            <!-- Access Denied Message for Non-Admins trying to access admin pages -->
-            <?php if (!hasPermission($current_page, $userRole)): ?>
+            <!-- Access Denied Message for users without permission -->
+            <?php if (function_exists('canAccessPage') && !canAccessPage($current_page)): ?>
                 <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
                     <div class="flex items-center">
                         <i class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
                         <div>
                             <h4 class="font-medium text-red-800">Access Denied</h4>
                             <p class="text-sm text-red-700 mt-1">
-                                Administrator privileges required to access this page. 
-                                Your current role: <strong><?php echo esc_html($userRole); ?></strong>
+                                You do not have permission to access this page. 
+                                Your current role: <strong><?php echo getRoleDisplayName($userRole); ?></strong>
                             </p>
-                            <?php if ($userRole !== 'admin'): ?>
+                            
+                            <!-- Show what permissions user has -->
+                            <div class="mt-3 text-sm text-red-600">
+                                <strong>Available pages for your role:</strong>
+                                <ul class="list-disc list-inside mt-1 text-xs">
+                                    <?php foreach ($navigationItems as $item): ?>
+                                        <?php if (hasPermission($item['permission'])): ?>
+                                        <li><a href="<?php echo $item['url']; ?>" class="underline hover:text-red-800"><?php echo $item['label']; ?></a></li>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                            
+                            <?php if (defined('ROLE_ADMINISTRATOR') && $userRole !== ROLE_ADMINISTRATOR): ?>
                             <p class="text-sm text-red-600 mt-2">
                                 <i class="fas fa-info-circle mr-1"></i>
                                 Contact your administrator to upgrade your account permissions.
@@ -139,9 +250,9 @@ function hasPermission($page, $userRole) {
                     </div>
                 </div>
                 <script>
-                // Redirect non-admin users away from admin pages
+                // Redirect users away from unauthorized pages after 5 seconds
                 setTimeout(() => {
                     window.location.href = 'index.php';
-                }, 3000);
+                }, 5000);
                 </script>
             <?php endif; ?>
