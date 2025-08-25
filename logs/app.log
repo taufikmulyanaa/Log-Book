@@ -1,0 +1,31 @@
+[2025-08-25 06:09:57] - Matrix updated for instrument ID 3. Parameter 'TotalVolume' set to true
+[2025-08-25 06:09:57] - Matrix updated for instrument ID 1. Parameter 'TotalVolume' set to true
+[2025-08-25 06:10:01] - Matrix updated for instrument ID 2. Parameter 'MobilePhase' set to true
+[2025-08-25 06:10:01] - Matrix updated for instrument ID 2. Parameter 'Speed' set to true
+[2025-08-25 06:10:03] - Matrix updated for instrument ID 2. Parameter 'ElectrodeType' set to true
+[2025-08-25 06:10:03] - Matrix updated for instrument ID 2. Parameter 'Result' set to true
+[2025-08-25 06:10:04] - Matrix updated for instrument ID 2. Parameter 'WavelengthScan' set to true
+[2025-08-25 06:10:05] - Matrix updated for instrument ID 2. Parameter 'Diluent' set to true
+[2025-08-25 06:10:05] - Matrix updated for instrument ID 2. Parameter 'Lamp' set to true
+[2025-08-25 08:53:23] - Matrix updated for instrument ID 9. Parameter 'MobilePhase' set to true
+[2025-08-25 08:53:24] - Matrix updated for instrument ID 9. Parameter 'Speed' set to true
+[2025-08-25 08:53:24] - Matrix updated for instrument ID 9. Parameter 'ElectrodeType' set to true
+[2025-08-25 08:53:25] - Matrix updated for instrument ID 9. Parameter 'Result' set to true
+[2025-08-25 08:53:25] - Matrix updated for instrument ID 9. Parameter 'WavelengthScan' set to true
+[2025-08-25 08:53:26] - Matrix updated for instrument ID 9. Parameter 'Diluent' set to true
+[2025-08-25 08:53:26] - Matrix updated for instrument ID 9. Parameter 'Lamp' set to true
+[2025-08-25 08:53:27] - Matrix updated for instrument ID 9. Parameter 'Column' set to true
+[2025-08-25 08:53:27] - Matrix updated for instrument ID 9. Parameter 'Apparatus' set to true
+[2025-08-25 08:53:29] - Matrix updated for instrument ID 9. Parameter 'Medium' set to true
+[2025-08-25 08:53:29] - Matrix updated for instrument ID 9. Parameter 'TotalVolume' set to true
+[2025-08-25 08:53:30] - Matrix updated for instrument ID 9. Parameter 'VesselQuantity' set to true
+[2025-08-25 08:54:22] - New logbook entry created (ID: 1) by user ID: 1
+[25-Aug-2025 08:54:22 Europe/Berlin] PHP Warning:  Undefined array key "activity" in C:\xampp\htdocs\log-book\public\logbook_list.php on line 168
+[25-Aug-2025 08:54:27 Europe/Berlin] PHP Warning:  Undefined array key "activity" in C:\xampp\htdocs\log-book\public\edit_entry.php on line 144
+[2025-08-25 08:54:49] - Error updating entry: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'activity' in 'field list'
+[25-Aug-2025 08:57:36 Europe/Berlin] PHP Warning:  Undefined array key "activity" in C:\xampp\htdocs\log-book\public\logbook_list.php on line 168
+[25-Aug-2025 08:59:21 Europe/Berlin] PHP Warning:  Undefined array key "activity" in C:\xampp\htdocs\log-book\public\logbook_list.php on line 168
+[25-Aug-2025 08:59:52 Europe/Berlin] PHP Warning:  Undefined array key "activity" in C:\xampp\htdocs\log-book\public\logbook_list.php on line 168
+[2025-08-25 09:11:42] - Entry updated (ID: 1) by user ID: 1
+[2025-08-25 09:12:25] - Entry updated (ID: 1) by user ID: 1
+[2025-08-25 09:17:45] - Error during CSV import: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'activity' in 'field list'

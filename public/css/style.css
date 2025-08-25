@@ -1,0 +1,741 @@
+/* public/css/style.css - R&D Logbook System Custom Styles */
+
+/* =========================================================================
+   1. BASE STYLES & VARIABLES
+   ========================================================================= */
+
+:root {
+    /* Color Palette - Consistent with design system */
+    --primary-blue: #005294;
+    --primary-blue-light: #0066b3;
+    --primary-blue-dark: #003d70;
+    
+    --border-color: hsl(214.3, 31.8%, 91.4%);
+    --muted-bg: hsl(210, 40%, 96.1%);
+    --card-bg: hsl(0, 0%, 100%);
+    --foreground: hsl(222.2, 84%, 4.9%);
+    --muted-foreground: hsl(215.4, 16.3%, 46.9%);
+    
+    /* Status Colors */
+    --success-green: #10b981;
+    --warning-yellow: #f59e0b;
+    --danger-red: #ef4444;
+    --info-blue: #3b82f6;
+    
+    /* Spacing */
+    --sidebar-width: 16rem; /* 256px */
+    --header-height: 4rem;   /* 64px */
+    
+    /* Transitions */
+    --transition-fast: 150ms ease-in-out;
+    --transition-normal: 300ms ease-in-out;
+    --transition-slow: 500ms ease-in-out;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Base body styling */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--muted-bg);
+    color: var(--foreground);
+    line-height: 1.6;
+    font-size: 14px;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* =========================================================================
+   2. SIDEBAR STYLES
+   ========================================================================= */
+
+.sidebar-transition {
+    transition: transform var(--transition-normal);
+}
+
+#sidebar {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+    width: var(--sidebar-width);
+    box-shadow: var(--shadow-xl);
+}
+
+#sidebar .nav-link {
+    transition: all var(--transition-fast);
+    border-radius: 0.5rem;
+}
+
+#sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(4px);
+}
+
+#sidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left: 4px solid #ffffff;
+}
+
+/* =========================================================================
+   3. HEADER STYLES
+   ========================================================================= */
+
+header {
+    height: var(--header-height);
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.profile-dropdown {
+    transition: all var(--transition-fast);
+}
+
+.profile-dropdown:hover {
+    background-color: var(--muted-bg);
+    box-shadow: var(--shadow-md);
+}
+
+/* =========================================================================
+   4. CARD & CONTAINER STYLES
+   ========================================================================= */
+
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem; /* 12px */
+    box-shadow: var(--shadow-lg);
+    transition: box-shadow var(--transition-fast);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-xl);
+}
+
+.card-header {
+    background: var(--primary-blue);
+    color: white;
+    padding: 1rem;
+    font-weight: 700;
+    text-align: center;
+    font-size: 1.25rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* =========================================================================
+   5. FORM STYLES
+   ========================================================================= */
+
+.form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background-color: var(--muted-bg);
+    font-size: 0.875rem;
+    transition: all var(--transition-fast);
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 82, 148, 0.1);
+    background-color: var(--card-bg);
+}
+
+.form-input:disabled, .form-select:disabled, .form-textarea:disabled {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    margin-bottom: 0.25rem;
+}
+
+/* =========================================================================
+   6. BUTTON STYLES
+   ========================================================================= */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Button Variants */
+.btn-primary {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--primary-blue-light);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-success {
+    background: var(--success-green);
+    color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+    background: #059669;
+}
+
+.btn-warning {
+    background: var(--warning-yellow);
+    color: white;
+}
+
+.btn-warning:hover:not(:disabled) {
+    background: #d97706;
+}
+
+.btn-danger {
+    background: var(--danger-red);
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #dc2626;
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--foreground);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--muted-bg);
+}
+
+/* =========================================================================
+   7. TABLE STYLES
+   ========================================================================= */
+
+.table-container {
+    background: var(--card-bg);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.table th {
+    background: var(--muted-bg);
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+
+.table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--foreground);
+}
+
+.table tr:hover {
+    background-color: rgba(0, 82, 148, 0.02);
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Sticky columns for wide tables */
+.table-sticky-left {
+    position: sticky;
+    left: 0;
+    background: var(--card-bg);
+    z-index: 10;
+    border-right: 1px solid var(--border-color);
+}
+
+.table tr:hover .table-sticky-left {
+    background: rgba(0, 82, 148, 0.02);
+}
+
+/* =========================================================================
+   8. STATUS BADGES
+   ========================================================================= */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.badge-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #065f46;
+}
+
+.badge-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #92400e;
+}
+
+.badge-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #991b1b;
+}
+
+.badge-info {
+    background: rgba(59, 130, 246, 0.1);
+    color: #1e40af;
+}
+
+.badge-secondary {
+    background: var(--muted-bg);
+    color: var(--muted-foreground);
+}
+
+/* =========================================================================
+   9. MODAL STYLES
+   ========================================================================= */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 1rem;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--border-color);
+    width: 100%;
+    max-width: 42rem; /* 672px */
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-1rem) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.modal-close {
+    color: var(--muted-foreground);
+    transition: color var(--transition-fast);
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    color: var(--foreground);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* =========================================================================
+   10. NOTIFICATION STYLES
+   ========================================================================= */
+
+.notification-toast {
+    position: fixed;
+    top: 5rem;
+    right: 1.5rem;
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-xl);
+    z-index: 50;
+    transition: transform var(--transition-normal);
+    min-width: 20rem;
+}
+
+.notification-success {
+    background: var(--success-green);
+    color: white;
+}
+
+.notification-error {
+    background: var(--danger-red);
+    color: white;
+}
+
+.notification-warning {
+    background: var(--warning-yellow);
+    color: white;
+}
+
+.notification-info {
+    background: var(--info-blue);
+    color: white;
+}
+
+/* =========================================================================
+   11. MATRIX CHECKBOX STYLES (for Settings page)
+   ========================================================================= */
+
+.matrix-checkbox {
+    appearance: none;
+    background-color: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+    position: relative;
+    transition: all var(--transition-fast);
+}
+
+.matrix-checkbox:checked {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+}
+
+.matrix-checkbox:checked::after {
+    content: '✓';
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.matrix-checkbox:hover {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 82, 148, 0.1);
+}
+
+.matrix-checkbox:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 82, 148, 0.2);
+}
+
+/* =========================================================================
+   12. DATATABLES CUSTOMIZATION
+   ========================================================================= */
+
+/* DataTables wrapper customization */
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+    background-color: var(--muted-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.dataTables_wrapper .dataTables_length select:focus,
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: var(--primary-blue);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 82, 148, 0.1);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: 0.5rem;
+    margin: 0 0.125rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--primary-blue) !important;
+    color: white !important;
+    border-color: var(--primary-blue) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--muted-bg) !important;
+    border-color: var(--primary-blue) !important;
+}
+
+/* DataTables export buttons */
+.dt-button {
+    background-color: var(--primary-blue) !important;
+    color: white !important;
+    border-radius: 0.5rem !important;
+    padding: 0.5rem 1rem !important;
+    border: none !important;
+    font-size: 0.875rem !important;
+    transition: all var(--transition-fast) !important;
+}
+
+.dt-button:hover {
+    background-color: var(--primary-blue-light) !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+/* =========================================================================
+   13. LOADING & SKELETON STATES
+   ========================================================================= */
+
+.loading-spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 0.25rem solid var(--border-color);
+    border-top-color: var(--primary-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, var(--muted-bg) 25%, rgba(255, 255, 255, 0.8) 50%, var(--muted-bg) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 0.25rem;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* =========================================================================
+   14. UTILITY CLASSES
+   ========================================================================= */
+
+.text-primary { color: var(--primary-blue); }
+.text-success { color: var(--success-green); }
+.text-warning { color: var(--warning-yellow); }
+.text-danger { color: var(--danger-red); }
+.text-muted { color: var(--muted-foreground); }
+
+.bg-primary { background-color: var(--primary-blue); }
+.bg-success { background-color: var(--success-green); }
+.bg-warning { background-color: var(--warning-yellow); }
+.bg-danger { background-color: var(--danger-red); }
+.bg-muted { background-color: var(--muted-bg); }
+.bg-card { background-color: var(--card-bg); }
+
+.border { border: 1px solid var(--border-color); }
+.border-primary { border-color: var(--primary-blue); }
+.border-success { border-color: var(--success-green); }
+.border-warning { border-color: var(--warning-yellow); }
+.border-danger { border-color: var(--danger-red); }
+
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+.shadow-xl { box-shadow: var(--shadow-xl); }
+
+.rounded { border-radius: 0.25rem; }
+.rounded-lg { border-radius: 0.5rem; }
+.rounded-xl { border-radius: 0.75rem; }
+.rounded-full { border-radius: 9999px; }
+
+.transition { transition: all var(--transition-fast); }
+.transition-colors { transition: color var(--transition-fast), background-color var(--transition-fast); }
+
+/* =========================================================================
+   15. RESPONSIVE DESIGN
+   ========================================================================= */
+
+/* Mobile First Approach */
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 0.5rem;
+        max-width: calc(100vw - 1rem);
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .notification-toast {
+        right: 1rem;
+        left: 1rem;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 1024px) {
+    #sidebar {
+        transform: translateX(-100%);
+    }
+    
+    #sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .table th, .table td {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    #sidebar {
+        transform: translateX(0);
+    }
+}
+
+/* =========================================================================
+   16. PRINT STYLES
+   ========================================================================= */
+
+@media print {
+    #sidebar,
+    #overlay,
+    header,
+    .modal-overlay,
+    .notification-toast,
+    .dt-buttons,
+    .btn {
+        display: none !important;
+    }
+    
+    main {
+        padding: 0 !important;
+    }
+    
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+    }
+    
+    .table {
+        font-size: 0.75rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.25rem;
+    }
+}
+
+/* =========================================================================
+   17. DARK MODE SUPPORT (Optional - for future enhancement)
+   ========================================================================= */
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --card-bg: hsl(222.2, 84%, 4.9%);
+        --foreground: hsl(210, 40%, 98%);
+        --muted-bg: hsl(217.2, 32.6%, 17.5%);
+        --muted-foreground: hsl(215, 20.2%, 65.1%);
+        --border-color: hsl(217.2, 32.6%, 17.5%);
+    }
+}
+
+/* =========================================================================
+   18. ACCESSIBILITY IMPROVEMENTS
+   ========================================================================= */
+
+/* Focus styles for keyboard navigation */
+*:focus {
+    outline: 2px solid var(--primary-blue);
+    outline-offset: 2px;
+}
+
+/* Skip to main content link */
+.skip-to-main {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--primary-blue);
+    color: white;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 100;
+    border-radius: 4px;
+}
+
+.skip-to-main:focus {
+    top: 6px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --border-color: #000000;
+    }
+    
+    .btn {
+        border: 2px solid currentColor;
+    }
+}
