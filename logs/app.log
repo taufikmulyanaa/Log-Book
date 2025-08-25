@@ -69,3 +69,7 @@
 [25-Aug-2025 16:38:53 Europe/Berlin] PHP Fatal error:  Cannot redeclare hasPermission() (previously declared in C:\xampp\htdocs\log-book\config\permissions.php:92) in C:\xampp\htdocs\log-book\templates\header.php on line 34
 [2025-08-25 16:40:02] - User logged in: Administrator (Role: )
 [2025-08-25 16:59:34] - Entry updated (ID: 3) by user ID: 1
+[2025-08-25 17:13:55] - User logged out: Administrator
+[2025-08-25 17:13:56] - User logged in: Administrator (Role: )
+[2025-08-25 23:50:36] - User logged out: Administrator
+[2025-08-25 23:54:15] - User logged in: Administrator (Role: )
