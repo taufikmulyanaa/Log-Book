@@ -30,3 +30,20 @@
 [2025-08-25 09:12:25] - Entry updated (ID: 1) by user ID: 1
 [2025-08-25 09:17:45] - Error during CSV import: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'activity' in 'field list'
 [2025-08-25 09:39:40] - New logbook entry created (ID: 2) by user ID: 1
+[2025-08-25 09:58:46] - User logged out: Administrator
+[2025-08-25 09:58:53] - User logged in: Administrator (Role: admin)
+[2025-08-25 10:01:53] - User (ID: 2) created by Admin (ID: 1)
+[2025-08-25 10:02:20] - User (ID: 3) created by Admin (ID: 1)
+[2025-08-25 10:02:48] - User (ID: 4) created by Admin (ID: 1)
+[2025-08-25 10:02:52] - User logged out: Administrator
+[2025-08-25 10:02:57] - User logged in: Yoza (Role: user)
+[2025-08-25 10:03:11] - User logged out: Yoza
+[2025-08-25 10:03:15] - User logged in: Administrator (Role: admin)
+[2025-08-25 10:03:41] - User (ID: 5) created by Admin (ID: 1)
+[2025-08-25 10:04:00] - User (ID: 6) created by Admin (ID: 1)
+[2025-08-25 10:04:18] - User (ID: 7) created by Admin (ID: 1)
+[2025-08-25 10:04:47] - User (ID: 8) created by Admin (ID: 1)
+[2025-08-25 10:05:10] - User (ID: 9) created by Admin (ID: 1)
+[2025-08-25 10:05:28] - User (ID: 10) created by Admin (ID: 1)
+[2025-08-25 10:06:00] - User (ID: 11) created by Admin (ID: 1)
+[2025-08-25 10:06:31] - User (ID: 12) created by Admin (ID: 1)

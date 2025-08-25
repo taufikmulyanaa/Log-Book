@@ -4,7 +4,9 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
+
 $userName = $_SESSION['user_name'] ?? 'User';
+$userRole = $_SESSION['user_role'] ?? 'user'; // Get user role
 $current_page = basename($_SERVER['PHP_SELF']);
 
 function getPageTitle($page) {
@@ -12,12 +14,24 @@ function getPageTitle($page) {
         case 'entry.php': return 'Entry';
         case 'logbook_list.php': return 'Logbook List';
         case 'reporting.php': return 'Reporting';
-        case 'import.php': return 'Import Data'; // Ditambahkan
+        case 'import.php': return 'Import Data';
         case 'settings.php': return 'Settings';
+        case 'user_management.php': return 'User Management';
         case 'index.php':
         default:
             return 'Dashboard';
     }
+}
+
+// Helper function to check if user has permission for a page
+function hasPermission($page, $userRole) {
+    $adminOnlyPages = ['user_management.php'];
+    
+    if (in_array($page, $adminOnlyPages)) {
+        return $userRole === 'admin';
+    }
+    
+    return true; // All other pages accessible to all logged-in users
 }
 ?>
 <!DOCTYPE html>
@@ -46,6 +60,16 @@ function getPageTitle($page) {
                 <li><a href="reporting.php" class="w-full text-left px-3 py-2 text-white text-sm rounded-lg transition duration-200 flex items-center gap-2 <?php echo ($current_page == 'reporting.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>"><i class="fas fa-chart-bar fa-fw"></i><span>Reporting</span></a></li>
                 <li><a href="import.php" class="w-full text-left px-3 py-2 text-white text-sm rounded-lg transition duration-200 flex items-center gap-2 <?php echo ($current_page == 'import.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>"><i class="fas fa-file-import fa-fw"></i><span>Import Data</span></a></li>
                 <li><a href="settings.php" class="w-full text-left px-3 py-2 text-white text-sm rounded-lg transition duration-200 flex items-center gap-2 <?php echo ($current_page == 'settings.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>"><i class="fas fa-cog fa-fw"></i><span>Settings</span></a></li>
+                
+                <?php if ($userRole === 'admin'): ?>
+                <li class="border-t border-blue-400 pt-2 mt-2">
+                    <a href="user_management.php" class="w-full text-left px-3 py-2 text-white text-sm rounded-lg transition duration-200 flex items-center gap-2 <?php echo ($current_page == 'user_management.php') ? 'bg-blue-700' : 'hover:bg-blue-600'; ?>">
+                        <i class="fas fa-users-cog fa-fw"></i>
+                        <span>User Management</span>
+                        <span class="text-xs bg-red-500 px-1 rounded">Admin</span>
+                    </a>
+                </li>
+                <?php endif; ?>
             </ul>
         </nav>
     </aside>
@@ -58,14 +82,30 @@ function getPageTitle($page) {
                 <h2 id="pageTitle" class="text-xl font-semibold text-gray-800"><?php echo getPageTitle($current_page); ?></h2>
             </div>
             <div class="flex items-center gap-4">
+                <!-- Debug info (remove in production) -->
+                <?php if (isset($_GET['debug'])): ?>
+                <div class="text-xs bg-yellow-100 px-2 py-1 rounded border">
+                    <strong>Debug:</strong> Role: <?php echo $userRole; ?> | ID: <?php echo $_SESSION['user_id']; ?>
+                </div>
+                <?php endif; ?>
+                
                 <div class="relative">
                     <button id="profile-menu-button" class="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 rounded-lg px-4 py-2 transition-colors">
                         <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center"><span class="text-white text-sm font-semibold"><?php echo strtoupper(substr($userName, 0, 1)); ?></span></div>
-                        <div class="text-sm text-left hidden sm:block"><p class="font-medium text-gray-800"><?php echo esc_html($userName); ?></p><p class="text-gray-500 text-xs">Administrator</p></div>
+                        <div class="text-sm text-left hidden sm:block">
+                            <p class="font-medium text-gray-800"><?php echo esc_html($userName); ?></p>
+                            <p class="text-gray-500 text-xs capitalize"><?php echo esc_html($userRole); ?></p>
+                        </div>
                         <i class="fas fa-chevron-down text-gray-400 text-xs hidden sm:block"></i>
                     </button>
                     <div id="profileMenu" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 hidden z-50">
+                        <div class="px-4 py-2 border-b text-xs text-gray-500">
+                            Logged in as: <strong><?php echo esc_html($userRole); ?></strong>
+                        </div>
                         <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fas fa-user mr-3 text-gray-400"></i> My Profile</a>
+                        <?php if ($userRole === 'admin'): ?>
+                        <a href="user_management.php" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><i class="fas fa-users-cog mr-3 text-gray-400"></i> User Management</a>
+                        <?php endif; ?>
                         <hr class="my-1 border-gray-200">
                         <form action="logout.php" method="post" class="w-full">
                             <input type="hidden" name="csrf_token" value="<?php echo esc_html($_SESSION['csrf_token']); ?>">
@@ -77,3 +117,31 @@ function getPageTitle($page) {
         </header>
         <main class="flex-1 overflow-auto p-6">
             <div class="max-w-7xl mx-auto space-y-6">
+            
+            <!-- Access Denied Message for Non-Admins trying to access admin pages -->
+            <?php if (!hasPermission($current_page, $userRole)): ?>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
+                        <div>
+                            <h4 class="font-medium text-red-800">Access Denied</h4>
+                            <p class="text-sm text-red-700 mt-1">
+                                Administrator privileges required to access this page. 
+                                Your current role: <strong><?php echo esc_html($userRole); ?></strong>
+                            </p>
+                            <?php if ($userRole !== 'admin'): ?>
+                            <p class="text-sm text-red-600 mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Contact your administrator to upgrade your account permissions.
+                            </p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                // Redirect non-admin users away from admin pages
+                setTimeout(() => {
+                    window.location.href = 'index.php';
+                }, 3000);
+                </script>
+            <?php endif; ?>
