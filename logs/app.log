@@ -47,3 +47,12 @@
 [2025-08-25 10:05:28] - User (ID: 10) created by Admin (ID: 1)
 [2025-08-25 10:06:00] - User (ID: 11) created by Admin (ID: 1)
 [2025-08-25 10:06:31] - User (ID: 12) created by Admin (ID: 1)
+[2025-08-25 10:16:10] - New logbook entry created (ID: 3) by user ID: 1
+[2025-08-25 10:18:32] - User (ID: 2) updated by Admin (ID: 1)
+[2025-08-25 10:18:38] - User logged out: Administrator
+[2025-08-25 10:18:44] - User logged in: Nova (Role: viewer)
+[2025-08-25 10:19:29] - New logbook entry created (ID: 4) by user ID: 2
+[2025-08-25 10:19:36] - Entry deleted (ID: 4, Code: RD/ME/004) by user ID: 2
+[2025-08-25 10:19:45] - User logged out: Nova
+[2025-08-25 10:19:47] - User logged in: Administrator (Role: admin)
+[2025-08-25 10:23:24] - New logbook entry created (ID: 5) by user ID: 1
