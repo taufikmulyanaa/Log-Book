@@ -29,3 +29,4 @@
 [2025-08-25 09:11:42] - Entry updated (ID: 1) by user ID: 1
 [2025-08-25 09:12:25] - Entry updated (ID: 1) by user ID: 1
 [2025-08-25 09:17:45] - Error during CSV import: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'activity' in 'field list'
+[2025-08-25 09:39:40] - New logbook entry created (ID: 2) by user ID: 1

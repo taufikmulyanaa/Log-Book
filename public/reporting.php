@@ -1,5 +1,5 @@
 <?php
-// public/advanced_reporting.php
+// public/reporting.php
 require_once __DIR__ . '/../config/init.php';
 require_once __DIR__ . '/../templates/header.php';
 
@@ -79,68 +79,148 @@ $user_productivity = $reporting->getUserProductivity($start_date, $end_date);
 $maintenance_alerts = $reporting->getMaintenanceAlerts();
 ?>
 
-<div class="space-y-4">
-    <div class="bg-card p-4 rounded-lg border border-border">
-        <form method="GET" class="flex flex-wrap gap-3 items-end">
-            <div>
-                <label class="block text-xs font-medium text-muted-foreground mb-1">Start Date</label>
-                <input type="date" name="start_date" value="<?php echo esc_html($start_date); ?>" 
-                       class="bg-muted border border-border rounded-md px-3 py-1.5 text-xs">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-muted-foreground mb-1">End Date</label>
-                <input type="date" name="end_date" value="<?php echo esc_html($end_date); ?>" 
-                       class="bg-muted border border-border rounded-md px-3 py-1.5 text-xs">
-            </div>
-            <button type="submit" class="bg-primary text-white px-3 py-1.5 rounded-md text-xs hover:bg-primary/90">
-                Generate Report
-            </button>
-        </form>
+<div class="card">
+    <div class="card-header text-base">
+        Reports & Analytics
     </div>
-
-    <div class="bg-card p-4 rounded-lg border border-border">
-        <h3 class="text-base font-semibold mb-3">Instrument Usage Statistics</h3>
-        <div class="overflow-x-auto">
-            <table class="w-full text-xs">
-                <thead class="bg-muted">
-                    <tr>
-                        <th class="p-2 text-left">Instrument</th>
-                        <th class="p-2 text-right">Usage Count</th>
-                        <th class="p-2 text-right">Avg Duration (hrs)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($instrument_usage as $usage): ?>
-                    <tr class="border-t border-border">
-                        <td class="p-2"><?php echo esc_html($usage['name']); ?></td>
-                        <td class="p-2 text-right"><?php echo (int)$usage['usage_count']; ?></td>
-                        <td class="p-2 text-right"><?php echo number_format($usage['avg_duration_hours'] ?? 0, 1); ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+    
+    <div class="p-6 space-y-6">
+        <!-- Date Range Filter Section -->
+        <div class="border-b pb-6">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div>
+                    <label class="form-label text-xs">Start Date</label>
+                    <input type="date" name="start_date" value="<?php echo esc_html($start_date); ?>" 
+                           class="form-input text-xs">
+                </div>
+                <div>
+                    <label class="form-label text-xs">End Date</label>
+                    <input type="date" name="end_date" value="<?php echo esc_html($end_date); ?>" 
+                           class="form-input text-xs">
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary text-xs w-full">
+                        <i class="fas fa-chart-line mr-1"></i>Generate Report
+                    </button>
+                </div>
+            </form>
         </div>
-    </div>
 
-    <?php if (!empty($maintenance_alerts)): ?>
-    <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-        <h3 class="text-base font-semibold text-yellow-800 mb-3">🚨 Maintenance Alerts</h3>
-        <div class="space-y-2 text-xs">
-            <?php foreach ($maintenance_alerts as $alert): ?>
-            <div class="bg-white p-2 rounded border border-yellow-200">
-                <strong><?php echo esc_html($alert['name']); ?></strong> (<?php echo esc_html($alert['code']); ?>)
-                <?php if ($alert['broken_count'] > 0): ?>
-                    <span class="text-red-600 ml-2">⚠️ Reported broken <?php echo (int)$alert['broken_count']; ?> times</span>
-                <?php elseif ($alert['maintenance_needed'] > 0): ?>
-                    <span class="text-orange-600 ml-2">🔧 Needs maintenance (<?php echo (int)$alert['maintenance_needed']; ?> reports)</span>
-                <?php else: ?>
-                    <span class="text-gray-600 ml-2">📅 Not used since <?php echo esc_html($alert['last_used']); ?></span>
-                <?php endif; ?>
+        <!-- Instrument Usage Statistics Section -->
+        <div>
+            <h3 class="text-sm font-semibold mb-4">Instrument Usage Statistics</h3>
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead class="bg-muted">
+                        <tr>
+                            <th class="p-2 text-left">Instrument</th>
+                            <th class="p-2 text-right">Usage Count</th>
+                            <th class="p-2 text-right">Avg Duration (hrs)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($instrument_usage)): ?>
+                            <tr>
+                                <td colspan="3" class="p-8 text-center text-muted-foreground">
+                                    <div class="flex flex-col items-center gap-2">
+                                        <i class="fas fa-chart-bar text-2xl opacity-50"></i>
+                                        <p>No data available for the selected date range.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($instrument_usage as $usage): ?>
+                            <tr class="border-t border-border">
+                                <td class="p-2"><?php echo esc_html($usage['name']); ?></td>
+                                <td class="p-2 text-right"><?php echo (int)$usage['usage_count']; ?></td>
+                                <td class="p-2 text-right"><?php echo number_format($usage['avg_duration_hours'] ?? 0, 1); ?></td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
-            <?php endforeach; ?>
         </div>
+
+        <!-- User Productivity Section -->
+        <div>
+            <h3 class="text-sm font-semibold mb-4">User Productivity Report</h3>
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead class="bg-muted">
+                        <tr>
+                            <th class="p-2 text-left">User</th>
+                            <th class="p-2 text-right">Total Entries</th>
+                            <th class="p-2 text-right">Successful Runs</th>
+                            <th class="p-2 text-right">Success Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($user_productivity)): ?>
+                            <tr>
+                                <td colspan="4" class="p-8 text-center text-muted-foreground">
+                                    <div class="flex flex-col items-center gap-2">
+                                        <i class="fas fa-users text-2xl opacity-50"></i>
+                                        <p>No user activity data available for the selected date range.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($user_productivity as $user): ?>
+                            <tr class="border-t border-border">
+                                <td class="p-2"><?php echo esc_html($user['name']); ?></td>
+                                <td class="p-2 text-right"><?php echo (int)$user['entries_count']; ?></td>
+                                <td class="p-2 text-right"><?php echo (int)$user['successful_runs']; ?></td>
+                                <td class="p-2 text-right">
+                                    <?php 
+                                    $success_rate = $user['entries_count'] > 0 ? round(($user['successful_runs'] / $user['entries_count']) * 100, 1) : 0;
+                                    echo $success_rate . '%';
+                                    ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Maintenance Alerts Section -->
+        <?php if (!empty($maintenance_alerts)): ?>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h3 class="text-sm font-semibold text-yellow-800 mb-3">
+                <i class="fas fa-exclamation-triangle mr-2"></i>Maintenance Alerts
+            </h3>
+            <div class="space-y-2 text-xs">
+                <?php foreach ($maintenance_alerts as $alert): ?>
+                <div class="bg-white p-3 rounded border border-yellow-200">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <strong><?php echo esc_html($alert['name']); ?></strong> 
+                            <span class="text-muted-foreground">(<?php echo esc_html($alert['code']); ?>)</span>
+                        </div>
+                        <div class="text-right text-xs">
+                            <?php if ($alert['broken_count'] > 0): ?>
+                                <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full">
+                                    <i class="fas fa-times-circle mr-1"></i>Broken (<?php echo (int)$alert['broken_count']; ?> reports)
+                                </span>
+                            <?php elseif ($alert['maintenance_needed'] > 0): ?>
+                                <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">
+                                    <i class="fas fa-wrench mr-1"></i>Needs Maintenance (<?php echo (int)$alert['maintenance_needed']; ?> reports)
+                                </span>
+                            <?php else: ?>
+                                <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full">
+                                    <i class="fas fa-clock mr-1"></i>Not used since <?php echo esc_html(date('M j, Y', strtotime($alert['last_used']))); ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
-    <?php endif; ?>
 </div>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>
